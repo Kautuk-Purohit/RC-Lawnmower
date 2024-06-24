@@ -1,0 +1,49 @@
+//CONTROLLER CODE
+
+
+#include <WiFiNINA.h>
+
+const char* ssid = "mrpenney";
+const char* password = "password";  // Replace with your WiFi password
+const char* host = "192.168.0.144";  // Replace with the receiver Arduino's IP address
+const uint16_t port = 9090;  // Port number
+
+void setup() {
+  Serial.begin(9600);
+
+  // Connect to WiFi
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print("Connecting to WiFi...");
+    WiFi.begin(ssid, password);
+    delay(5000);
+  }
+  Serial.println("Connected to WiFi");
+
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(2, INPUT_PULLUP);  // Joystick button
+}
+
+void loop() {
+  WiFiClient client;
+  if (client.connect(host, port)) {
+    int xValue = analogRead(A0);  // Read VRx value
+    int yValue = analogRead(A1);  // Read VRy value
+    int buttonState = digitalRead(2);  // Read button state
+
+    // Send the joystick values to receiver Arduino
+    client.print(xValue);
+    client.print(",");
+    client.print(yValue);
+    client.print(",");
+    client.print(buttonState);
+    client.println();
+
+    client.stop();
+
+    delay(100);
+  } else {
+    Serial.println("Connection to host failed");
+  }
+  delay(100);  // Send data every 100 ms
+}
